@@ -10,6 +10,7 @@ public class PlayerFire : PlayerAbility
     public ParticleSystem MuzzleFlash;
     public ParticleSystem HitEffect;
     public bool IsReloading;
+    public GameObject AimPoint;
 
 
     private void Start()
@@ -27,7 +28,7 @@ public class PlayerFire : PlayerAbility
         {
             _timer += Time.deltaTime;
         }
-        if (Input.GetMouseButton(0) && _owner.stat.Ammo > 0)
+        if (Input.GetMouseButton(0) && _owner.stat.Ammo > 0 && !IsReloading)
         {
 
             _owner.Animator.SetBool("Fire", true);
@@ -37,23 +38,27 @@ public class PlayerFire : PlayerAbility
             }
         }
 
-        if (Input.GetMouseButtonUp(0) || _owner.stat.Ammo == 0)
+        if (Input.GetMouseButtonUp(0) || _owner.stat.Ammo == 0 || IsReloading)
         {
             _owner.Animator.SetBool("Fire", false);
             MuzzleFlash.Stop();
         }
-        if (_owner.stat.Ammo == 0 && !IsReloading)
+        if ((_owner.stat.Ammo == 0 || Input.GetKeyDown(KeyCode.R) && !IsReloading))
         {
-            IsReloading = true;
             StartCoroutine(Reload_Coroutine(ReloadTime));
         }
-
     }
     public IEnumerator Reload_Coroutine(float reloadTime)
     {
+        IsReloading = true;
+        AimPoint.SetActive(false);
+        _owner.Animator.SetBool("Reload", IsReloading);
+        _owner.Animator.SetBool("Fire", false);
         yield return new WaitForSeconds(reloadTime);
         _owner.stat.ReloadAmmo();
         IsReloading = false;
+        AimPoint.SetActive(true);
+        _owner.Animator.SetBool("Reload", IsReloading);
     }
 
     private void Fire()
@@ -72,19 +77,17 @@ public class PlayerFire : PlayerAbility
             MuzzleFlash.Play();
         }
 
-        Vector3 yOffset = new Vector3(0, 1.5f, 0);
-        Ray ray = new Ray(transform.position+yOffset, transform.forward);
+        Vector3 yOffset = new Vector3(0, 0.8f, 0);
+        Ray ray = new Ray(transform.position + yOffset, transform.forward);
         RaycastHit hitInfo;
-        Debug.DrawRay(ray.origin, ray.direction);
-        bool IsHit = Physics.Raycast(ray, out hitInfo);
-        Debug.Log(hitInfo.point);
+
+        bool IsHit = Physics.Raycast(ray, out hitInfo, 20f);
         if (IsHit)
         {
             IHitable hitObject = hitInfo.collider.GetComponent<IHitable>();
             if (hitObject != null)
             {
-                Debug.Log("Hit");
-                hitObject.Hit();
+                hitObject.Hit(_owner.stat.Damage, transform.position);
             }
             HitEffect.gameObject.transform.position = hitInfo.point;
             HitEffect.gameObject.transform.forward = hitInfo.normal;

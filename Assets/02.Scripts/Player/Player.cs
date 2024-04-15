@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IHitable
 {
     public Stat stat;
     public static Player instance;
@@ -22,6 +22,18 @@ public class Player : MonoBehaviour
         }
 
         Animator = GetComponent<Animator>();
-
+        stat.Init();
+    }
+    public void Hit(int damage, Vector3 hitPosition)
+    {
+        stat.Health -= damage;
+        if (stat.Health <= 0)
+        {
+            GameOver();
+        }
+    }
+    private void GameOver()
+    {
+        Debug.Log("GameOver");
     }
 }

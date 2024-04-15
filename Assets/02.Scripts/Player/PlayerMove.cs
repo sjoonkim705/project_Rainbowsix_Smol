@@ -10,7 +10,6 @@ public class PlayerMove : PlayerAbility
     private Vector3 _moveVector;
     public float MoveSpeed;
     private Animator _animator;
-    private Vector3 _targetRotation;
 
     protected override void Awake()
     {
@@ -36,17 +35,12 @@ public class PlayerMove : PlayerAbility
             // 이동 애니메이션 설정
             _animator.SetBool("isRun", true);
 
-            // 목표 회전 각도 계산
             Quaternion targetRotation = Quaternion.LookRotation(_moveVector);
-
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-
-            // 이동 처리
             transform.position += _moveVector * MoveSpeed * Time.deltaTime;
         }
         else
         {
-            // 정지 애니메이션 설정
             _animator.SetBool("isRun", false);
         }
     }

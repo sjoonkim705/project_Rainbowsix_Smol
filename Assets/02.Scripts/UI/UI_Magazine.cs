@@ -10,6 +10,8 @@ public class UI_Magazine : MonoBehaviour
 {
     public List<GameObject> Magazine = new List<GameObject>();
     public Text BulletLeft;
+    public PlayerFire PlayerFire;
+
     void Start()
     {
         Refresh();
@@ -42,7 +44,7 @@ public class UI_Magazine : MonoBehaviour
             textColor = "grey";
         }
 
-        if (Player.instance.stat.Ammo != 0)
+        if (!PlayerFire.IsReloading)
         {
             BulletLeft.text = $"<color={textColor}>{Player.instance.stat.Ammo}</color>/{Player.instance.stat.MaxAmmo}";
         }

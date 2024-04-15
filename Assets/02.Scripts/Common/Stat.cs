@@ -29,6 +29,7 @@ public class Stat
     }
     public int MaxHealth;
     private int _ammo;
+    public int Damage;
 
     public int Ammo
     {
@@ -48,6 +49,10 @@ public class Stat
     public int MaxAmmo;
 
     public float FireSpeed;
+    public void Init()
+    {
+        Health = MaxHealth;
+    }
     public void ReloadAmmo()
     {
         Ammo = MaxAmmo;
