@@ -10,6 +10,9 @@ public class PlayerMove : PlayerAbility
     private Vector3 _moveVector;
     public float MoveSpeed;
     private Animator _animator;
+    private float RotationSpeed = 5f;
+
+
 
     protected override void Awake()
     {
@@ -37,12 +40,13 @@ public class PlayerMove : PlayerAbility
 
             Quaternion targetRotation = Quaternion.LookRotation(_moveVector);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
-            transform.position += _moveVector * MoveSpeed * Time.deltaTime;
         }
         else
         {
             _animator.SetBool("isRun", false);
         }
+        transform.position += _moveVector * MoveSpeed * Time.deltaTime;
+
     }
 
 

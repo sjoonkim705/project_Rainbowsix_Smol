@@ -24,17 +24,18 @@ public class Enemy : MonoBehaviour, IHitable
     public Stat stat;
     private EnemyState _currentState;
     public EnemyType EnemyType;
-    public bool IsPatrolType;
+    public bool IsStaticType;
     private NavMeshAgent _navMeshAgent;
     private Vector3 _knockBackDir;
     private float _knockbackProgress = 0f;
     private Vector3 _target;
     private Collider _collider;
+    public ParticleSystem MuzzleFlash;
 
 
     [Header("Idle Variables")]
     public float StartPatrolDistance = 20f;
-    public const float TOLERANCE = 0.1f;
+    public const float TOLERANCE = 0.2f;
     private Vector3 _enemyOriginPos;
 
 
@@ -43,7 +44,7 @@ public class Enemy : MonoBehaviour, IHitable
     public float KnockbackPower = 2.0f;
     public float KnockbackDuration = 0.5f;
 
-    private float _traceTimer = 0;
+    private float _traceToComebackTimer = 0;
     public float TraceToComebackTime = 6f;
 
 
@@ -83,8 +84,7 @@ public class Enemy : MonoBehaviour, IHitable
                 Trace();
                 break;
             case EnemyState.Attack:
-                StartCoroutine(Attack_Coroutine());
-                Trace();
+                Attack();
                 break;
             case EnemyState.Comeback:
                 Comeback();
@@ -103,6 +103,7 @@ public class Enemy : MonoBehaviour, IHitable
 
         if (stat.Health <= 0)
         {
+           
             Animator.SetTrigger("Die");
             _currentState = EnemyState.Die;
         }
@@ -116,18 +117,38 @@ public class Enemy : MonoBehaviour, IHitable
             _currentState = EnemyState.Damaged;
         }
     }
-
+    private float _idleTimer = 0;
+    public float Idletime = 5f;
     private void Idle()
     {
         // 플레이어 발견시 trace
-        if (Vector3.Distance(Player.instance.transform.position, transform.position) <= StartPatrolDistance)
+        _idleTimer += Time.deltaTime;
+        if (_idleTimer <= Idletime && !IsStaticType)
         {
             Animator.SetTrigger("IdleToPatrol");
             _currentState = EnemyState.Patrol;
+            _idleTimer = 0;
         }
+        if (TryRaycastToPlayer(out _target, traceRange))
+        {
+            Animator.SetTrigger("IdleToTrace");
+            _currentState = EnemyState.Trace;
+            _idleTimer = 0;
+        }
+
     }
+    private float _patrolTimer = 0;
+
     void Patrol()
     {
+        _patrolTimer += Time.deltaTime;
+        _navMeshAgent.isStopped = false;
+        if (_patrolTimer > 10f)
+        {
+            _currentState = EnemyState.Comeback;
+            Animator.SetTrigger("PatrolToComeback");
+            _patrolTimer = 0;
+        }
         if (!_navMeshAgent.pathPending && _navMeshAgent.remainingDistance <= TOLERANCE)
         {
             MoveToRandomPosition();
@@ -137,51 +158,82 @@ public class Enemy : MonoBehaviour, IHitable
             _currentState = EnemyState.Trace;
         }
     }
-    private float traceRange = 15f;
+    private float traceRange = 20f;
+    private float _traceToAttackTimer = 0;
     void Trace()
     {
         // attackDistance가 될때까지 trace
-
+        _navMeshAgent.isStopped = false;
         if (!TryRaycastToPlayer(out _target, traceRange))
         {
-            _traceTimer += Time.deltaTime;
+            _traceToComebackTimer += Time.deltaTime;
         }
         else
         {
-            _navMeshAgent.SetDestination(_target);
-            _navMeshAgent.stoppingDistance = 5f;
-            _currentState = EnemyState.Attack;
-            _traceTimer = 0;
+            _traceToAttackTimer += Time.deltaTime;
+            _navMeshAgent.SetDestination(_target); //
+            if (_traceToAttackTimer > 0.5f)
+            {
+                _currentState = EnemyState.Attack;
+                _traceToAttackTimer = 0;
+                _attackTimer = 0;
+            }
+            _traceToComebackTimer = 0;
         }
-        if (_traceTimer > TraceToComebackTime)
+        if (_traceToComebackTimer > TraceToComebackTime)
         {
+            Animator.SetTrigger("TraceToComeback");
             _currentState = EnemyState.Comeback;
+            _comebackTimer = 0;
         }
     }
-    private float attackDistance = 5f;
-    private IEnumerator Attack_Coroutine()
+    public float AttackDistance = 15f;
+    private float _attackTimer = 0f;
+    private float attackAngleThershold = 30f;
+
+    private void Attack()
     {
-        if (TryRaycastToPlayer(out _target, attackDistance))
+        _navMeshAgent.isStopped = true;
+        if (_attackTimer == 0)
         {
-            //AttackPlayer(); 0.8확률로 공격성공
-            int randomFactor = Random.Range(0, 10);
-            if (randomFactor < 9)
+            TryRaycastToPlayer(out _target, AttackDistance);
+            PlayFireAnimation();
+            Vector3 directionToPlayer = Player.instance.transform.position - transform.position;
+            Vector3 forward = transform.forward;
+            float angle = Vector3.Angle(forward, directionToPlayer);
+
+            if (angle <= attackAngleThershold && directionToPlayer.magnitude < 15f)
             {
                 Player.instance.Hit(stat.Damage, transform.position);
-                yield return new WaitForSeconds(0.2f);
-            }
-            else
-            {
-                yield return new WaitForSeconds(0.2f);
             }
         }
-        else
+            _attackTimer += Time.deltaTime;
+        
+
+        if (_attackTimer > 1f)
         {
+
+            Animator.SetTrigger("AttackToTrace");
             _currentState = EnemyState.Trace;
-            yield return new WaitForSeconds(0.2f);
+            _attackTimer = 0;
         }
+
     }
 
+    private void PlayFireAnimation()
+    {
+        Animator.SetTrigger("Attack");
+        if (!MuzzleFlash.isPlaying)
+        {
+            StartCoroutine(MuzzleFlash_Coroutine());
+        }
+    }
+    private IEnumerator MuzzleFlash_Coroutine()
+    {
+        MuzzleFlash.Play();
+        yield return new WaitForSeconds(0.2f);
+        MuzzleFlash.Stop();
+    }
 
     void Damaged() // knockback effect
     {
@@ -198,18 +250,27 @@ public class Enemy : MonoBehaviour, IHitable
             Animator.SetTrigger("DamagedToTrace");
             _currentState = EnemyState.Trace;
         }
-    }                                                                                                                                                                                                                
+    }
+    private float _comebackTimer = 0f;
     void Comeback()
     {
-        _navMeshAgent.destination = _enemyOriginPos;
+        if (_comebackTimer == 0)
+        {
+            _navMeshAgent.isStopped = false;
+            _navMeshAgent.destination = _enemyOriginPos;
+        }
+        _comebackTimer += Time.deltaTime;
         if (!_navMeshAgent.pathPending && _navMeshAgent.remainingDistance <= TOLERANCE)
         {
             Animator.SetTrigger("ComebackToIdle");
             _currentState = EnemyState.Idle;
+            _comebackTimer = 0;
+            _idleTimer = 0;
         }
     }
     void Die()
     {
+        _knockbackProgress = 1;
         _collider.enabled = false;
         _navMeshAgent.isStopped = true;
         StartCoroutine(Die_Coroutine());
@@ -236,15 +297,24 @@ public class Enemy : MonoBehaviour, IHitable
 
     private bool TryRaycastToPlayer(out Vector3 target, float distance)
     {
+        Vector3 yOffset = new Vector3(0, 1.0f, 0);
         Vector3 targetPos  = Player.instance.transform.position;
-        Vector3 rayOrigin = transform.position;
+        Vector3 rayOrigin = transform.position + yOffset;
         Vector3 rayDir =  (targetPos - rayOrigin).normalized;
 
         RaycastHit hitInfo;
         if (Physics.Raycast(rayOrigin, rayDir, out hitInfo, distance))
         {
-            target = hitInfo.point;
-            return true;
+            if (hitInfo.collider.CompareTag("Player"))
+            {
+                target = hitInfo.point;
+                return true;
+            }    
+            else
+            {
+                target = Vector3.zero;
+                return false;
+            }
         }
         else
         {

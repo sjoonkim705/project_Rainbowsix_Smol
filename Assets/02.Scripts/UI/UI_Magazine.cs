@@ -18,7 +18,7 @@ public class UI_Magazine : MonoBehaviour
 
     }
 
-    void Update()
+    void LateUpdate()
     {
 
         Refresh();

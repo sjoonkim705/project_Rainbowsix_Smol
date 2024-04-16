@@ -44,6 +44,10 @@ public class Stat
             {
                 _ammo = MaxAmmo;
             }
+            else if (_ammo < 0)
+            {
+                _ammo = 0;
+            }
         }
     }
     public int MaxAmmo;

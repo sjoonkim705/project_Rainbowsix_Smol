@@ -66,6 +66,7 @@ public class PlayerFire : PlayerAbility
         if (_owner.stat.Ammo > 0)
         {
             _owner.stat.Ammo--;
+            //Debug.Log(_owner.stat.Ammo);
         }
         else
         {
@@ -80,8 +81,8 @@ public class PlayerFire : PlayerAbility
         Vector3 yOffset = new Vector3(0, 0.8f, 0);
         Ray ray = new Ray(transform.position + yOffset, transform.forward);
         RaycastHit hitInfo;
-
-        bool IsHit = Physics.Raycast(ray, out hitInfo, 20f);
+        int layermask = LayerMask.GetMask("Door");
+        bool IsHit = Physics.Raycast(ray, out hitInfo, 25f,layermask);
         if (IsHit)
         {
             IHitable hitObject = hitInfo.collider.GetComponent<IHitable>();
