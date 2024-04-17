@@ -43,7 +43,6 @@ public class UI_Magazine : MonoBehaviour
         {
             textColor = "grey";
         }
-
         if (!PlayerFire.IsReloading)
         {
             BulletLeft.text = $"<color={textColor}>{Player.instance.stat.Ammo}</color>/{Player.instance.stat.MaxAmmo}";

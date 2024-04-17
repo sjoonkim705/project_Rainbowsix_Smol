@@ -10,7 +10,7 @@ public class UI_EnemyHealthBar : MonoBehaviour
 
     private void Awake()
     {
-        HealthSliderUI = GetComponent<Slider>();
+        HealthSliderUI = GetComponentInChildren<Slider>();
         MyEnemy = GetComponentInParent<Enemy>();
     }
     private void Update()

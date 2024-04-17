@@ -93,7 +93,6 @@ public class Enemy : MonoBehaviour, IHitable
                 Damaged();
                 break;
             case EnemyState.Die:
-                Die();
                 break;
         }
     }
@@ -106,6 +105,7 @@ public class Enemy : MonoBehaviour, IHitable
            
             Animator.SetTrigger("Die");
             _currentState = EnemyState.Die;
+            Die();
         }
         else
         {
@@ -129,7 +129,7 @@ public class Enemy : MonoBehaviour, IHitable
             _currentState = EnemyState.Patrol;
             _idleTimer = 0;
         }
-        if (TryRaycastToPlayer(out _target, traceRange))
+        if (TryRaycastToPlayer(out _target, _traceRange))
         {
             Animator.SetTrigger("IdleToTrace");
             _currentState = EnemyState.Trace;
@@ -153,18 +153,18 @@ public class Enemy : MonoBehaviour, IHitable
         {
             MoveToRandomPosition();
         }
-        if (TryRaycastToPlayer(out _target, traceRange))
+        if (TryRaycastToPlayer(out _target, _traceRange))
         {
             _currentState = EnemyState.Trace;
         }
     }
-    private float traceRange = 20f;
+    private float _traceRange = 20f;
     private float _traceToAttackTimer = 0;
     void Trace()
     {
         // attackDistance가 될때까지 trace
         _navMeshAgent.isStopped = false;
-        if (!TryRaycastToPlayer(out _target, traceRange))
+        if (!TryRaycastToPlayer(out _target, _traceRange))
         {
             _traceToComebackTimer += Time.deltaTime;
         }
@@ -189,7 +189,7 @@ public class Enemy : MonoBehaviour, IHitable
     }
     public float AttackDistance = 15f;
     private float _attackTimer = 0f;
-    private float attackAngleThershold = 30f;
+    private float _attackAngleThershold = 30f;
 
     private void Attack()
     {
@@ -202,7 +202,7 @@ public class Enemy : MonoBehaviour, IHitable
             Vector3 forward = transform.forward;
             float angle = Vector3.Angle(forward, directionToPlayer);
 
-            if (angle <= attackAngleThershold && directionToPlayer.magnitude < 15f)
+            if (angle <= _attackAngleThershold && directionToPlayer.magnitude < 15f)
             {
                 Player.instance.Hit(stat.Damage, transform.position);
             }
@@ -279,7 +279,10 @@ public class Enemy : MonoBehaviour, IHitable
 
     private IEnumerator Die_Coroutine()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
+        _collider.enabled = false;
+        yield return new WaitForSeconds(1f);
+        ItemObjectFactory.Instance.MakePercent(transform.position);
         Destroy(gameObject);
     }
 

@@ -10,7 +10,7 @@ public class PlayerMove : PlayerAbility
     private Vector3 _moveVector;
     public float MoveSpeed;
     private Animator _animator;
-    private float RotationSpeed = 5f;
+    public float RotationSpeed = 10f;
 
 
 
@@ -39,7 +39,7 @@ public class PlayerMove : PlayerAbility
             _animator.SetBool("isRun", true);
 
             Quaternion targetRotation = Quaternion.LookRotation(_moveVector);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, RotationSpeed * Time.deltaTime);
         }
         else
         {
