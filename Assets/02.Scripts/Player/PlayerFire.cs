@@ -19,37 +19,45 @@ public class PlayerFire : PlayerAbility
     }
     private void Update()
     {
-        if (Input.GetKey(KeyCode.P))
+
+        if (GameManager.Instance.State == GameState.Playing)
         {
-            _owner.stat.MaxAmmo = 100;
-            _owner.stat.ReloadAmmo();
+            AimPoint.SetActive(true);
         }
+        else
+        {
+            AimPoint.SetActive(false);
+        }
+
         if (_timer < 1.0f)
         {
             _timer += Time.deltaTime;
         }
-        if (Input.GetMouseButton(0) && _owner.stat.Ammo > 0 && !IsReloading)
+        if (Input.GetMouseButton(0) && _owner.stat.Ammo > 0 && !IsReloading && GameManager.Instance.State == GameState.Playing)
         {
 
             _owner.Animator.SetBool("Fire", true);
             if (_timer > _owner.stat.FireSpeed)
             {
                 Fire();
+                AudioManager.instance.PlaySfx(AudioManager.Sfx.Fire);
             }
         }
 
         if (Input.GetMouseButtonUp(0) || _owner.stat.Ammo == 0 || IsReloading)
         {
             _owner.Animator.SetBool("Fire", false);
+            AudioManager.instance.PlaySfx(AudioManager.Sfx.BulletShell);
             MuzzleFlash.Stop();
         }
-        if ((_owner.stat.Ammo == 0 || Input.GetKeyDown(KeyCode.R) && !IsReloading))
+        if ((_owner.stat.Ammo == 0 || Input.GetKeyDown(KeyCode.R)) && !IsReloading)
         {
             StartCoroutine(Reload_Coroutine(ReloadTime));
         }
     }
     public IEnumerator Reload_Coroutine(float reloadTime)
     {
+        AudioManager.instance.PlaySfx(AudioManager.Sfx.Reload);
         IsReloading = true;
         AimPoint.SetActive(false);
         _owner.Animator.SetBool("Reload", IsReloading);

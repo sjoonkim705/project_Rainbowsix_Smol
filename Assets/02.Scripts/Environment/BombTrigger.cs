@@ -1,3 +1,4 @@
+using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class BombTrigger : MonoBehaviour
     public Animation BombAnimation;
     public GameObject EnemySpawnPoint;
     public GameObject UI_DisarmScreen;
+
     [HideInInspector]
     private float _disarmProcess;
     public float DisarmProcess
@@ -41,6 +43,11 @@ public class BombTrigger : MonoBehaviour
             EnemySpawnPoint.SetActive(false);
         }
 
+        if (_disarmProcess >= 1)
+        {
+            GameManager.Instance.OnEnding();
+            GameManager.Instance.IsEnding = true;
+        }
     }
     private void OnTriggerEnter(Collider other)
     {

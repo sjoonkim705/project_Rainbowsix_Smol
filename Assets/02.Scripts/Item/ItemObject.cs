@@ -41,8 +41,6 @@ public class ItemObject : MonoBehaviour
         float distanceToPlayer = Vector3.Distance(transform.position, playerPosition);
         if (distanceToPlayer <= _pickupDistance)
         {
-            //Debug.Log(distanceToPlayer);
-            Debug.Log("Idle -> Trace");
             _currentstate = ItemState.Trace;
         }
     }
@@ -51,9 +49,20 @@ public class ItemObject : MonoBehaviour
     private Coroutine _traceCoroutine;
     private void Trace()
     {
-        if(_traceCoroutine == null)
+
+        Vector3 playerPosition = Player.instance.transform.position;
+        float distanceToPlayer = Vector3.Distance(transform.position, playerPosition);
+
+        if (_traceCoroutine == null)
         {
             _traceCoroutine = StartCoroutine(Trace_Coroutine());
+        }
+        if (distanceToPlayer > _pickupDistance)
+        {
+            _currentstate = ItemState.Idle;
+            StopCoroutine(_traceCoroutine);
+            _drawProgress = 0;
+            _traceCoroutine = null;
         }
     }
     private IEnumerator Trace_Coroutine()
@@ -70,12 +79,13 @@ public class ItemObject : MonoBehaviour
         }
         if (ItemType == ItemType.Health)
         {
-            Player.instance.stat.Health += 5;
+            Player.instance.stat.Health += 10;
         }
         else if (ItemType == ItemType.Credit)
         {
             UI_Score.Instance.Score++;
         }
+        AudioManager.instance.PlaySfx(AudioManager.Sfx.Item);
         gameObject.SetActive(false);
     }
 

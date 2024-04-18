@@ -656,7 +656,7 @@ MonoBehaviour:
   MuzzleFlash: {fileID: 3893926631875484506}
   StartPatrolDistance: 20
   KnockbackPower: 0.5
-  KnockbackDuration: 0.3
+  KnockbackDuration: 0.1
   TraceToComebackTime: 6
   PatrolRandomRange: 5
   Animator: {fileID: 0}

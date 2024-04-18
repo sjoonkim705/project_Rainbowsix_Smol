@@ -1,31 +1,42 @@
-﻿namespace ArionDigital
+namespace ArionDigital
 {
+    using System.Collections;
     using UnityEngine;
 
-    public class CrashCrate : MonoBehaviour
+    public class CrashCrate : MonoBehaviour, IHitable
     {
         [Header("Whole Create")]
+        public int RequiredHit = 2;
+        private int _hitCount = 0;
         public MeshRenderer wholeCrate;
         public BoxCollider boxCollider;
         [Header("Fractured Create")]
         public GameObject fracturedCrate;
-        [Header("Audio")]
-        public AudioSource crashAudioClip;
 
-        private void OnTriggerEnter(Collider other)
+
+        public void Hit(int amount, Vector3 position)
         {
-            wholeCrate.enabled = false;
-            boxCollider.enabled = false;
-            fracturedCrate.SetActive(true);
-            crashAudioClip.Play();
+            _hitCount++;
+            if (_hitCount == RequiredHit)
+            {
+                wholeCrate.enabled = false;
+                boxCollider.enabled = false;
+                fracturedCrate.SetActive(true);
+                StartCoroutine(DropItemAndDestroy_Coroutine());
+            }
+            //crashAudioClip.Play();
         }
 
-        [ContextMenu("Test")]
-        public void Test()
+        private IEnumerator DropItemAndDestroy_Coroutine()
         {
-            wholeCrate.enabled = false;
-            boxCollider.enabled = false;
-            fracturedCrate.SetActive(true);
+            yield return new WaitForSeconds(1.5f);
+            if (Random.Range(0,3) == 0)
+            {
+                ItemObjectFactory.Instance.MakePercent(transform.position);
+            }
+            yield return new WaitForSeconds(1f);
+            Destroy(gameObject);
         }
+
     }
 }

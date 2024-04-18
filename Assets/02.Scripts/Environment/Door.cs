@@ -7,7 +7,7 @@ public class Door : MonoBehaviour
     [HideInInspector]
     public Collider MyCollider;
     public bool IsOpen = false;
-    public GameObject Screen;
+    public List<GameObject> Screens = new List<GameObject> ();
 
     // Start is called before the first frame update
     void Start()
@@ -26,11 +26,15 @@ public class Door : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         MyCollider.enabled = false;
-        if (Screen != null)
+        foreach (GameObject screen in Screens)
         {
-            Destroy(Screen);
+            if (screen != null)
+            {
+                Destroy(screen);
+            }
         }
         IsOpen = true;
+
     }
     private IEnumerator Activecollider_Coroutine()
     {

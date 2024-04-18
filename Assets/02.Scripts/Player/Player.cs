@@ -38,12 +38,16 @@ public class Player : MonoBehaviour, IHitable
         UI_DamageScreen.Instance.Damaged();
         if (stat.Health <= 0)
         {
-            GameOver();
+            this.Animator.SetTrigger("Die");
+            GameManager.Instance.GameOver();
+        }
+    }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            Hit(200, Vector3.zero);
         }
     }
 
-    private void GameOver()
-    {
-        Debug.Log("GameOver");
-    }
 }

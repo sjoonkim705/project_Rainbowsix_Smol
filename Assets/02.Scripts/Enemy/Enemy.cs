@@ -42,7 +42,8 @@ public class Enemy : MonoBehaviour, IHitable
     private Vector3 _knockbackStartPosition;
     private Vector3 _knockbackEndPosition;
     public float KnockbackPower = 2.0f;
-    public float KnockbackDuration = 0.5f;
+    public float KnockbackDuration = 0.1f;
+    private bool _isInKnockbackProcess;
 
     private float _traceToComebackTimer = 0;
     public float TraceToComebackTime = 6f;
@@ -70,7 +71,6 @@ public class Enemy : MonoBehaviour, IHitable
 
     private void Update()
     {
-        Debug.Log(_currentState);
 
         switch (_currentState)
         {
@@ -93,6 +93,7 @@ public class Enemy : MonoBehaviour, IHitable
                 Damaged();
                 break;
             case EnemyState.Die:
+                DieState();
                 break;
         }
     }
@@ -129,7 +130,7 @@ public class Enemy : MonoBehaviour, IHitable
             _currentState = EnemyState.Patrol;
             _idleTimer = 0;
         }
-        if (TryRaycastToPlayer(out _target, _traceRange))
+        if (TryRaycastToPlayer(out _target, _traceRange, false))
         {
             Animator.SetTrigger("IdleToTrace");
             _currentState = EnemyState.Trace;
@@ -153,7 +154,7 @@ public class Enemy : MonoBehaviour, IHitable
         {
             MoveToRandomPosition();
         }
-        if (TryRaycastToPlayer(out _target, _traceRange))
+        if (TryRaycastToPlayer(out _target, _traceRange, false))
         {
             _currentState = EnemyState.Trace;
         }
@@ -164,7 +165,7 @@ public class Enemy : MonoBehaviour, IHitable
     {
         // attackDistance가 될때까지 trace
         _navMeshAgent.isStopped = false;
-        if (!TryRaycastToPlayer(out _target, _traceRange))
+        if (!TryRaycastToPlayer(out _target, _traceRange, false))
         {
             _traceToComebackTimer += Time.deltaTime;
         }
@@ -196,7 +197,7 @@ public class Enemy : MonoBehaviour, IHitable
         _navMeshAgent.isStopped = true;
         if (_attackTimer == 0)
         {
-            TryRaycastToPlayer(out _target, AttackDistance);
+            TryRaycastToPlayer(out _target, AttackDistance, true);
             PlayFireAnimation();
             Vector3 directionToPlayer = Player.instance.transform.position - transform.position;
             Vector3 forward = transform.forward;
@@ -235,15 +236,16 @@ public class Enemy : MonoBehaviour, IHitable
         MuzzleFlash.Stop();
     }
 
-    void Damaged() // knockback effect
+    void Damaged()
     {
         if (_knockbackProgress == 0)
         {
+
             _knockbackStartPosition = transform.position;
             _knockbackEndPosition = transform.position + _knockBackDir * KnockbackPower;
         }
         _knockbackProgress += Time.deltaTime / KnockbackDuration;
-        transform.position = Vector3.Lerp(_knockbackStartPosition, _knockbackEndPosition, _knockbackProgress);
+        transform.position = Vector3.Lerp(transform.position, _knockbackEndPosition, _knockbackProgress);
         if (_knockbackProgress > 1)
         {
             _knockbackProgress = 0f;
@@ -270,16 +272,20 @@ public class Enemy : MonoBehaviour, IHitable
     }
     void Die()
     {
-        _knockbackProgress = 1;
         _collider.enabled = false;
+        _knockbackProgress = 1;
         _navMeshAgent.isStopped = true;
         StartCoroutine(Die_Coroutine());
+
+    }
+    void DieState()
+    {
 
     }
 
     private IEnumerator Die_Coroutine()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         _collider.enabled = false;
         yield return new WaitForSeconds(1f);
         ItemObjectFactory.Instance.MakePercent(transform.position);
@@ -298,9 +304,13 @@ public class Enemy : MonoBehaviour, IHitable
         _patrolDestination = targetPosition;
     }
 
-    private bool TryRaycastToPlayer(out Vector3 target, float distance)
+    private bool TryRaycastToPlayer(out Vector3 target, float distance, bool IsAttackMode)
     {
-        Vector3 yOffset = new Vector3(0, 1.0f, 0);
+        Vector3 yOffset = new Vector3(0, 1.5f, 0);
+        if (IsAttackMode)
+        {
+            yOffset.y = 1.0f;
+        }
         Vector3 targetPos  = Player.instance.transform.position;
         Vector3 rayOrigin = transform.position + yOffset;
         Vector3 rayDir =  (targetPos - rayOrigin).normalized;
