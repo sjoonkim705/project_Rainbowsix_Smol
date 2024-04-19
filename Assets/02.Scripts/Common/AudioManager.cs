@@ -19,7 +19,7 @@ public class AudioManager : MonoBehaviour
     public int Channels;
     private AudioSource[] _sfxPlayers;
     private int _channelIndex;
-    public enum Sfx { Fire, BulletShell, Reload, Item}
+    public enum Sfx { Fire, BulletShell, Reload, Item, EnemyFire}
 
     private void Awake()
     {

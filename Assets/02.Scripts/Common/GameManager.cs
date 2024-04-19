@@ -79,15 +79,16 @@ public class GameManager : MonoBehaviour
     }
     public void OnEnding()
     {
-        Time.timeScale = 0;
+       // Time.timeScale = 0;
         State = GameState.GameOver;
         StartCoroutine(Ending_Coroutine());
     }
     private IEnumerator Ending_Coroutine()
     {
-        BombAreaCamera.Priority = 11;
+        BombAreaCamera.Priority = 12;
         yield return new WaitForSecondsRealtime(1f);
-        yield return new WaitForSecondsRealtime(3f);
+        Time.timeScale = 0;
+        yield return new WaitForSecondsRealtime(1f);
         UI_StageClear.SetActive(true);
     }
 

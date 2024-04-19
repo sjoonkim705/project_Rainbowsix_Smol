@@ -4991,7 +4991,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemType: 0
-  _drawSpeed: 5
+  _drawSpeed: 8
 --- !u!1 &7980759984537046769
 GameObject:
   m_ObjectHideFlags: 0

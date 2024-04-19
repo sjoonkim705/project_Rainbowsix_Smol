@@ -20,7 +20,7 @@ public class PlayerFire : PlayerAbility
     private void Update()
     {
 
-        if (GameManager.Instance.State == GameState.Playing)
+        if (GameManager.Instance.State == GameState.Playing && !IsReloading)
         {
             AimPoint.SetActive(true);
         }

@@ -206,6 +206,7 @@ public class Enemy : MonoBehaviour, IHitable
             if (angle <= _attackAngleThershold && directionToPlayer.magnitude < 15f)
             {
                 Player.instance.Hit(stat.Damage, transform.position);
+                AudioManager.instance.PlaySfx(AudioManager.Sfx.EnemyFire);
             }
         }
             _attackTimer += Time.deltaTime;

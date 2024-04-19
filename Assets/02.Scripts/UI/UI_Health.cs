@@ -32,5 +32,9 @@ public class UI_Health : MonoBehaviour
         {
             _fillImage.color = Color.yellow;
         }
+        else
+        {
+            _fillImage.color = Color.green;
+        }
     }
 }
